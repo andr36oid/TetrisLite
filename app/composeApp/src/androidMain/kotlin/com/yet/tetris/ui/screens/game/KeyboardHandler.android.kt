@@ -55,11 +55,20 @@ actual fun Modifier.keyboardHandler(
                         onMoveDown()
                         true
                     }
-                    Key.DirectionUp, Key.W, Key.Spacebar -> {
+                    Key.DirectionUp, Key.W, Key.Spacebar, Key.ButtonA -> {
                         when (primaryRotateDirection) {
                             RotationDirection.CLOCKWISE -> onRotate()
                             RotationDirection.COUNTERCLOCKWISE -> onRotateCounterClockwise()
                             RotationDirection.ONE_EIGHTY -> onRotate180()
+                        }
+                        true
+                    }
+                    // Gamepad: A rotates like Up, Y the other way, X drops, L1/R1 hold, Start pauses
+                    Key.ButtonY -> {
+                        if (primaryRotateDirection == RotationDirection.COUNTERCLOCKWISE) {
+                            onRotateClockwise()
+                        } else {
+                            onRotateCounterClockwise()
                         }
                         true
                     }
@@ -79,15 +88,15 @@ actual fun Modifier.keyboardHandler(
                             false
                         }
                     }
-                    Key.Enter -> {
+                    Key.Enter, Key.ButtonX -> {
                         onHardDrop()
                         true
                     }
-                    Key.C, Key.H -> {
+                    Key.C, Key.H, Key.ButtonL1, Key.ButtonR1 -> {
                         onHold()
                         true
                     }
-                    Key.Escape -> {
+                    Key.Escape, Key.ButtonStart -> {
                         onPause()
                         true
                     }
