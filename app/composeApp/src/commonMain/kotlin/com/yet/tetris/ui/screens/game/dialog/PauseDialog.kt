@@ -6,6 +6,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.yet.tetris.feature.game.GameComponent
 import org.jetbrains.compose.resources.stringResource
@@ -23,7 +24,7 @@ fun PauseDialog(component: GameComponent) {
         title = { Text(stringResource(Res.string.game_paused)) },
         text = { Text(stringResource(Res.string.pause_message)) },
         confirmButton = {
-            TextButton(onClick = component::onResume) {
+            TextButton(onClick = component::onResume, modifier = Modifier.initialFocus()) {
                 Text(stringResource(Res.string.resume))
             }
         },
@@ -31,10 +32,10 @@ fun PauseDialog(component: GameComponent) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                TextButton(onClick = component::onQuit) {
+                TextButton(onClick = component::onQuit, modifier = Modifier.dialogFocusRing()) {
                     Text(stringResource(Res.string.quit))
                 }
-                TextButton(onClick = component::onSettings) {
+                TextButton(onClick = component::onSettings, modifier = Modifier.dialogFocusRing()) {
                     Text(stringResource(Res.string.game_settings))
                 }
             }

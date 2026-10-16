@@ -85,12 +85,12 @@ fun GameOverDialog(
             }
         },
         confirmButton = {
-            Button(onClick = component::onRetry) {
+            Button(onClick = component::onRetry, modifier = Modifier.initialFocus()) {
                 Text(stringResource(Res.string.retry))
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = component::onQuit) {
+            OutlinedButton(onClick = component::onQuit, modifier = Modifier.dialogFocusRing()) {
                 Text(stringResource(Res.string.back_to_home))
             }
         },

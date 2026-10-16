@@ -1,5 +1,7 @@
 package com.yet.tetris.uikit.component.button
 
+import com.yet.tetris.uikit.component.modifier.focusRing
+
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -31,6 +33,7 @@ fun GlassButton(
         modifier =
             modifier
                 .height(56.dp)
+                .focusRing(RoundedCornerShape(16.dp))
                 .glassPanel(cornerRadius = 16.dp),
         shape = RoundedCornerShape(16.dp),
         contentPadding = PaddingValues(horizontal = 24.dp),

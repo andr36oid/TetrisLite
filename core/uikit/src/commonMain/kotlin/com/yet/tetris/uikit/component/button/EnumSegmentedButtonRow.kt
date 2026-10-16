@@ -1,5 +1,7 @@
 package com.yet.tetris.uikit.component.button
 
+import com.yet.tetris.uikit.component.modifier.focusRing
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -25,12 +27,14 @@ inline fun <reified T : Enum<T>> EnumSegmentedButtonRow(
         space = 8.dp,
     ) {
         enumValues.forEachIndexed { index, enumValue ->
+            val shape =
+                SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = enumValues.size,
+                )
             SegmentedButton(
-                shape =
-                    SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = enumValues.size,
-                    ),
+                shape = shape,
+                modifier = Modifier.focusRing(shape),
                 onClick = { onValueChange(enumValue) },
                 selected = selectedValue == enumValue,
                 label = {

@@ -1,5 +1,8 @@
 package com.yet.tetris.uikit.component.button
 
+import androidx.compose.foundation.shape.CircleShape
+import com.yet.tetris.uikit.component.modifier.focusRing
+
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -22,7 +25,7 @@ fun FrostedGlassButton(
     IconButton(
         onClick = onClick,
         interactionSource = interactionSource,
-        modifier = modifier,
+        modifier = modifier.focusRing(CircleShape),
         colors =
             IconButtonDefaults.iconButtonColors(
                 contentColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
