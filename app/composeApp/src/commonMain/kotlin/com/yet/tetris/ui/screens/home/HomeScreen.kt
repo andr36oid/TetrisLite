@@ -3,16 +3,19 @@ package com.yet.tetris.ui.screens.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MilitaryTech
@@ -30,9 +33,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,13 +67,13 @@ import tetrislite.composeapp.generated.resources.achievement_perfect_clear
 import tetrislite.composeapp.generated.resources.achievement_score_20000
 import tetrislite.composeapp.generated.resources.achievement_score_5000
 import tetrislite.composeapp.generated.resources.achievement_ten_games
-import tetrislite.composeapp.generated.resources.achievements_unlocked_value
+import tetrislite.composeapp.generated.resources.achievements_label
 import tetrislite.composeapp.generated.resources.app_title
-import tetrislite.composeapp.generated.resources.best_score_value
-import tetrislite.composeapp.generated.resources.difficulty_best_level_value
-import tetrislite.composeapp.generated.resources.difficulty_best_score_value
-import tetrislite.composeapp.generated.resources.games_played_value
-import tetrislite.composeapp.generated.resources.highest_level_value
+import tetrislite.composeapp.generated.resources.best_score_label
+import tetrislite.composeapp.generated.resources.difficulty_best_level_label
+import tetrislite.composeapp.generated.resources.difficulty_best_score_label
+import tetrislite.composeapp.generated.resources.games_played_label
+import tetrislite.composeapp.generated.resources.highest_level_label
 import tetrislite.composeapp.generated.resources.progress_title
 import tetrislite.composeapp.generated.resources.resume_game
 import tetrislite.composeapp.generated.resources.start_new_game
@@ -165,52 +172,124 @@ private fun HomeContent(
     onResumeGame: () -> Unit,
     onDifficultyChanged: (Difficulty) -> Unit,
 ) {
-    Column(
-        modifier = modifier.padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
-    ) {
-        EnumSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth(0.8f),
-            selectedValue = currentDifficulty,
-            onValueChange = onDifficultyChanged,
-        )
-
-        if (progression.hasProgress) {
-            ProgressionOverviewCard(
-                progression = progression,
-                currentDifficulty = currentDifficulty,
+    BoxWithConstraints(modifier = modifier) {
+        if (maxWidth > maxHeight && maxHeight < 560.dp) {
+            // Short landscape screens (handhelds, phones on their side): the buttons next to
+            // the progress instead of below it, where they ended up off the screen
+            Row(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f).widthIn(max = 400.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    EnumSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        selectedValue = currentDifficulty,
+                        onValueChange = onDifficultyChanged,
+                    )
+                    HomeActions(
+                        hasSavedGame = hasSavedGame,
+                        onStartNewGame = onStartNewGame,
+                        onResumeGame = onResumeGame,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                if (progression.hasProgress) {
+                    ProgressionOverviewCard(
+                        progression = progression,
+                        currentDifficulty = currentDifficulty,
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .widthIn(max = 400.dp)
+                                .verticalScroll(rememberScrollState()),
+                    )
+                }
+            }
+        } else {
+            Column(
                 modifier =
                     Modifier
-                        .widthIn(max = 520.dp)
-                        .fillMaxWidth(),
-            )
-        }
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .heightIn(min = maxHeight)
+                        .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    EnumSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth(0.8f),
+                        selectedValue = currentDifficulty,
+                        onValueChange = onDifficultyChanged,
+                    )
 
-        Spacer(modifier = Modifier.weight(1f))
+                    if (progression.hasProgress) {
+                        ProgressionOverviewCard(
+                            progression = progression,
+                            currentDifficulty = currentDifficulty,
+                            modifier =
+                                Modifier
+                                    .widthIn(max = 520.dp)
+                                    .fillMaxWidth(),
+                        )
+                    }
+                }
 
-        Column(
-            modifier = Modifier.widthIn(max = 400.dp).padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            GlassButton(
-                title = stringResource(Res.string.start_new_game),
-                icon = Icons.Default.PlayArrow,
-                onClick = onStartNewGame,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            if (hasSavedGame) {
-                GlassButton(
-                    title = stringResource(Res.string.resume_game),
-                    icon = Icons.Default.Refresh,
-                    onClick = onResumeGame,
-                    modifier = Modifier.fillMaxWidth(),
+                HomeActions(
+                    hasSavedGame = hasSavedGame,
+                    onStartNewGame = onStartNewGame,
+                    onResumeGame = onResumeGame,
+                    modifier =
+                        Modifier
+                            .padding(top = 24.dp, bottom = 32.dp)
+                            .widthIn(max = 400.dp)
+                            .padding(horizontal = 16.dp),
                 )
             }
         }
-        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+/** Start (focused first, so a D-pad or keyboard can start right away) and resume */
+@Composable
+private fun HomeActions(
+    hasSavedGame: Boolean,
+    onStartNewGame: () -> Unit,
+    onResumeGame: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val startFocus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        startFocus.requestFocus()
+    }
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        GlassButton(
+            title = stringResource(Res.string.start_new_game),
+            icon = Icons.Default.PlayArrow,
+            onClick = onStartNewGame,
+            modifier = Modifier.fillMaxWidth().focusRequester(startFocus),
+        )
+
+        if (hasSavedGame) {
+            GlassButton(
+                title = stringResource(Res.string.resume_game),
+                icon = Icons.Default.Refresh,
+                onClick = onResumeGame,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 
@@ -228,53 +307,36 @@ private fun ProgressionOverviewCard(
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = stringResource(Res.string.progress_title),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
-            Text(
-                text = stringResource(Res.string.best_score_value, progression.bestScore),
-            )
-            Text(
-                text = stringResource(Res.string.highest_level_value, progression.highestLevel),
-            )
-            Text(
-                text = stringResource(Res.string.games_played_value, progression.totalGames),
-            )
-            Text(
-                text =
-                    stringResource(
-                        Res.string.achievements_unlocked_value,
-                        progression.unlockedAchievements.size,
-                        progression.totalAchievements,
-                    ),
+            StatRow(stringResource(Res.string.best_score_label), progression.bestScore.toString())
+            StatRow(stringResource(Res.string.highest_level_label), progression.highestLevel.toString())
+            StatRow(stringResource(Res.string.games_played_label), progression.totalGames.toString())
+            StatRow(
+                stringResource(Res.string.achievements_label),
+                "${progression.unlockedAchievements.size}/${progression.totalAchievements}",
             )
             if (difficultyBest.gamesPlayed > 0) {
-                Text(
-                    text =
-                        stringResource(
-                            Res.string.difficulty_best_score_value,
-                            currentDifficulty.displayName(),
-                            difficultyBest.bestScore,
-                        ),
+                StatRow(
+                    stringResource(Res.string.difficulty_best_score_label, currentDifficulty.displayName()),
+                    difficultyBest.bestScore.toString(),
                 )
-                Text(
-                    text =
-                        stringResource(
-                            Res.string.difficulty_best_level_value,
-                            currentDifficulty.displayName(),
-                            difficultyBest.highestLevel,
-                        ),
+                StatRow(
+                    stringResource(Res.string.difficulty_best_level_label, currentDifficulty.displayName()),
+                    difficultyBest.highestLevel.toString(),
                 )
             }
             if (progression.unlockedAchievements.isNotEmpty()) {
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     for (achievement in progression.unlockedAchievements.takeLast(3)) {
                         Row(
@@ -287,22 +349,47 @@ private fun ProgressionOverviewCard(
                                         shape =
                                             androidx.compose.foundation.shape
                                                 .RoundedCornerShape(999.dp),
-                                    ).padding(horizontal = 10.dp, vertical = 6.dp),
+                                    ).padding(horizontal = 8.dp, vertical = 4.dp),
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MilitaryTech,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp),
                             )
                             Text(
                                 text = achievement.title(),
-                                style = MaterialTheme.typography.labelMedium,
+                                style = MaterialTheme.typography.labelSmall,
                             )
                         }
                     }
                 }
             }
         }
+    }
+}
+
+/** One line of the progress card: what on the left, the number on the right */
+@Composable
+private fun StatRow(
+    label: String,
+    value: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 
