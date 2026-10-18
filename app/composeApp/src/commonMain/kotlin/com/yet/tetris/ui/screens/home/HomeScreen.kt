@@ -50,7 +50,7 @@ import com.yet.tetris.domain.model.progression.ProgressionSummary
 import com.yet.tetris.feature.home.HomeComponent
 import com.yet.tetris.feature.home.PreviewHomeComponent
 import com.yet.tetris.ui.screens.history.HistorySheet
-import com.yet.tetris.ui.screens.settings.SettingsSheet
+import com.yet.tetris.ui.screens.settings.SettingsDialog
 import com.yet.tetris.uikit.component.button.EnumSegmentedButtonRow
 import com.yet.tetris.uikit.component.button.FrostedGlassButton
 import com.yet.tetris.uikit.component.button.GlassButton
@@ -148,16 +148,16 @@ fun HomeSheet(component: HomeComponent) {
     val bottomSheetSlot by component.childBottomSheetNavigation.subscribeAsState()
 
     bottomSheetSlot.child?.instance?.let { child ->
-        ModalBottomSheet(
-            onDismiss = component::onDismissBottomSheet,
-        ) {
-            when (child) {
-                is HomeComponent.BottomSheetChild.SettingsChild -> {
-                    SettingsSheet(child.component)
-                }
+        when (child) {
+            // a full-screen page in its own window: when it closes, the gear keeps the focus
+            is HomeComponent.BottomSheetChild.SettingsChild -> SettingsDialog(child.component)
 
-                is HomeComponent.BottomSheetChild.HistoryChild -> HistorySheet(child.component)
-            }
+            is HomeComponent.BottomSheetChild.HistoryChild ->
+                ModalBottomSheet(
+                    onDismiss = component::onDismissBottomSheet,
+                ) {
+                    HistorySheet(child.component)
+                }
         }
     }
 }

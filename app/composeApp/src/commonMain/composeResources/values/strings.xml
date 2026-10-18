@@ -57,6 +57,8 @@
     
     <!-- Settings Screen -->
     <string name="game_settings">Game Settings</string>
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
     <string name="visual_theme">Visual Theme</string>
     <string name="piece_style">Piece Style</string>
     <string name="music">Music</string>
