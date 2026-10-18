@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yet.tetris.domain.model.game.GameState
@@ -38,6 +39,7 @@ import com.yet.tetris.feature.game.GameComponent
 import com.yet.tetris.uikit.component.button.FrostedGlassButton
 import com.yet.tetris.uikit.component.modifier.glassPanel
 import com.yet.tetris.uikit.game.TetrisBoard
+import kotlin.math.floor
 
 @Composable
 internal fun CompactGameLayout(
@@ -223,6 +225,119 @@ internal fun ExpandedGameLayout(
     }
 }
 
+/**
+ * For game consoles: short landscape screens like 640x480 and 720x720 (andr36oid's fork).
+ * The board takes the whole height, with whole-pixel cells; hold and stats are on the left,
+ * the next pieces on the right. Both side columns are as wide, so the board is in the
+ * middle of the screen, where the effects overlay puts its texts and bursts.
+ */
+@Composable
+internal fun HandheldGameLayout(
+    modifier: Modifier,
+    gameState: GameState,
+    model: GameComponent.Model,
+    actions: GameInputActions,
+    metrics: GameLayoutMetrics,
+    juiceOverlayState: JuiceOverlayState,
+) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+        val rows = gameState.board.height.coerceAtLeast(1)
+        val columns = gameState.board.width.coerceAtLeast(1)
+        // the board pane's padding on both sides, and a pixel against rounding
+        val chrome = BOARD_PANE_PADDING * 2
+        val cellPx =
+            with(density) {
+                floor(((maxHeight - chrome).toPx() - 1f) / rows).coerceAtLeast(1f)
+            }
+        val boardWidth = with(density) { (cellPx * columns).toDp() }
+        val sideWidth = (maxWidth - boardWidth - chrome) / 2 - metrics.paneSpacing
+        val queuePieceSize = minOf(56.dp, sideWidth * 0.45f, (maxHeight - 100.dp) / 4)
+        val holdPieceSize = minOf(56.dp, sideWidth * 0.45f)
+
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(metrics.paneSpacing),
+        ) {
+            Column(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(metrics.paneSpacing),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                HoldPreviewPanel(
+                    holdPiece = gameState.holdPiece,
+                    settings = model.settings,
+                    pieceSize = holdPieceSize,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                GameStatsColumnPanel(
+                    score = gameState.score,
+                    lines = gameState.linesCleared,
+                    level = gameState.level,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                GameActionButtons(
+                    onPause = actions.onPause,
+                    onHold = actions.onHold,
+                    buttonSize = metrics.buttonSize,
+                )
+            }
+
+            GameBoardPane(
+                modifier =
+                    Modifier
+                        .width(boardWidth + chrome + 1.dp)
+                        .fillMaxHeight(),
+                gameState = gameState,
+                settings = model.settings,
+                ghostPieceY = model.ghostPieceY,
+                boardMaxWidth = boardWidth,
+                actions = actions,
+                juiceOverlayState = juiceOverlayState,
+                paneAlignment = Alignment.Center,
+            )
+
+            Column(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(metrics.paneSpacing),
+            ) {
+                NextQueuePanel(
+                    previewPieces = gameState.previewPieces,
+                    settings = model.settings,
+                    pieceSize = queuePieceSize,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                TimeStatPanel(
+                    time = model.elapsedTime,
+                    compact = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+/** Whether a window this size is a game console's short landscape screen, see [HandheldGameLayout] */
+internal fun isHandheldLandscape(
+    width: Dp,
+    height: Dp,
+): Boolean = height <= 720.dp && width >= height * 0.95f && width <= height * 1.5f
+
+private val BOARD_PANE_PADDING = 4.dp
+
 @Composable
 private fun CompactHeaderPane(
     gameState: GameState,
@@ -341,6 +456,8 @@ private fun GameActionButtons(
     onHold: () -> Unit,
     buttonSize: Dp,
 ) {
+    // they're for touch; without a touchscreen, Start pauses and a button holds
+    if (!rememberHasTouchscreen()) return
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -386,7 +503,7 @@ private fun GameBoardPane(
         modifier =
             panelModifier
                 .glassPanel(shape = RoundedCornerShape(20.dp))
-                .padding(4.dp),
+                .padding(BOARD_PANE_PADDING),
         contentAlignment = paneAlignment,
     ) {
         val widthBoundByHeight = maxHeight * boardAspectRatio

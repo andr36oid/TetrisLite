@@ -79,7 +79,16 @@ internal fun GamePlayingContent(
                 .fillMaxSize()
                 .padding(horizontal = metrics.horizontalPadding, vertical = metrics.verticalPadding)
 
-        if (singlePane) {
+        if (isHandheldLandscape(maxWidth, maxHeight)) {
+            HandheldGameLayout(
+                modifier = contentModifier,
+                gameState = gameState,
+                model = model,
+                actions = actions,
+                metrics = metrics,
+                juiceOverlayState = juiceOverlayState,
+            )
+        } else if (singlePane) {
             CompactGameLayout(
                 modifier = contentModifier,
                 gameState = gameState,

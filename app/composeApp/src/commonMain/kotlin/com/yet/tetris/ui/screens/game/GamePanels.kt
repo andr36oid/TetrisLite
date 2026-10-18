@@ -80,6 +80,28 @@ internal fun GameStatsPanel(
     }
 }
 
+/** Score, level and lines stacked, for the narrow side column of the handheld layout */
+@Composable
+internal fun GameStatsColumnPanel(
+    score: Long,
+    lines: Long,
+    level: Int,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier =
+            modifier
+                .glassPanel(shape = RoundedCornerShape(16.dp))
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        StatItem(label = stringResource(Res.string.score), value = score.toString(), compact = true)
+        StatItem(label = stringResource(Res.string.level), value = level.toString(), compact = true)
+        StatItem(label = stringResource(Res.string.lines), value = lines.toString(), compact = true)
+    }
+}
+
 @Composable
 internal fun TimeStatPanel(
     time: Long,
