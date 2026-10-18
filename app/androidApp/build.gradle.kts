@@ -12,8 +12,8 @@ android {
         applicationId = "com.yet.tetris"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 5
-        versionName = "1.3.0-andr36oid"
+        versionCode = 6
+        versionName = "1.3.1-andr36oid"
     }
 
     buildFeatures {
