@@ -1,7 +1,9 @@
 package com.yet.tetris.data.music
 
 import com.yet.tetris.domain.model.audio.Envelope
+import com.yet.tetris.domain.model.audio.MusicSection
 import com.yet.tetris.domain.model.audio.MusicSequence
+import com.yet.tetris.domain.model.audio.Note
 import com.yet.tetris.domain.model.audio.SoundEffectParams
 import com.yet.tetris.domain.model.audio.WaveformType
 import kotlin.math.PI
@@ -24,6 +26,7 @@ object AudioSynthesizer {
     private const val MAX_HARMONICS = 32
     private const val TARGET_PEAK = 0.92f
     private const val EDGE_FADE_SAMPLES = 32
+    private const val WAVETABLE_SIZE = 4096
 
     /**
      * Generates PCM audio data for a single sound effect.
@@ -92,17 +95,51 @@ object AudioSynthesizer {
         waveform: WaveformType = WaveformType.SQUARE,
         noteEnvelope: Envelope = Envelope(attack = 0.01f, decay = 0.2f, sustain = 0.5f, release = 0.05f),
     ): FloatArray {
-        val tempoFactor = 120.0f / sequence.tempo
-        val totalSamples =
-            sequence.notes.sumOf { note ->
-                max(0, (note.duration * tempoFactor * SAMPLE_RATE).toInt())
-            }
+        val sections =
+            sequence.sections.ifEmpty { listOf(MusicSection(sequence.notes, tempo = sequence.tempo)) }
+        val sectionSamples = sections.map { voiceSamples(it.melody, 120.0f / it.tempo) }
+        val totalSamples = sectionSamples.sum()
         if (totalSamples <= 0) return FloatArray(0)
 
+        // Every voice is added into the one buffer, so a long piece needs no second copy.
         val finalPcm = FloatArray(totalSamples)
-        var writeIndex = 0
+        val tables = mutableMapOf<Pair<WaveformType, Float>, FloatArray?>()
+        var offset = 0
+        sections.forEachIndexed { index, section ->
+            val tempoFactor = 120.0f / section.tempo
+            val end = offset + sectionSamples[index]
+            addVoice(finalPcm, offset, end, section.melody, tempoFactor, waveform, noteEnvelope, 1.0f, tables)
+            if (section.bass.isNotEmpty()) {
+                addVoice(
+                    finalPcm, offset, end, section.bass, tempoFactor,
+                    sequence.bassWaveform, noteEnvelope, sequence.bassVolume, tables,
+                )
+            }
+            offset = end
+        }
+        return finalizePcm(finalPcm)
+    }
 
-        for (note in sequence.notes) {
+    private fun voiceSamples(
+        notes: List<Note>,
+        tempoFactor: Float,
+    ): Int = notes.sumOf { note -> max(0, (note.duration * tempoFactor * SAMPLE_RATE).toInt()) }
+
+    /** Synthesizes [notes] one after another and adds them into [pcm] from [start], up to [end]. */
+    private fun addVoice(
+        pcm: FloatArray,
+        start: Int,
+        end: Int,
+        notes: List<Note>,
+        tempoFactor: Float,
+        waveform: WaveformType,
+        noteEnvelope: Envelope,
+        voiceVolume: Float,
+        tables: MutableMap<Pair<WaveformType, Float>, FloatArray?>,
+    ) {
+        var writeIndex = start
+        for (note in notes) {
+            if (writeIndex >= end) return
             val noteDuration = note.duration * tempoFactor
 
             // Generate audio for a single note using a simplified version of the SFX synthesizer.
@@ -114,11 +151,13 @@ object AudioSynthesizer {
             val releaseSamples = (noteEnvelope.release * SAMPLE_RATE).toInt()
             val sustainSamples = max(0, numSamples - attackSamples - decaySamples - releaseSamples)
 
-            val peakAmplitude = note.volume
+            val peakAmplitude = note.volume * voiceVolume
             val sustainAmplitude = peakAmplitude * noteEnvelope.sustain
+            val table = tables.getOrPut(waveform to note.frequency) { wavetable(waveform, note.frequency) }
             var phase = 0.0
 
             for (i in 0 until numSamples) {
+                if (writeIndex >= end) return
                 val amplitude =
                     envelopeAmplitude(
                         sampleIndex = i,
@@ -131,16 +170,42 @@ object AudioSynthesizer {
                         totalSamples = numSamples,
                     )
 
-                val rawValue = oscillatorSample(waveform = waveform, phase = phase, frequency = note.frequency)
-                finalPcm[writeIndex++] = rawValue * amplitude
+                val rawValue =
+                    if (table != null) {
+                        tableSample(table, phase)
+                    } else {
+                        oscillatorSample(waveform = waveform, phase = phase, frequency = note.frequency)
+                    }
+                pcm[writeIndex++] += rawValue * amplitude
                 phase = advancePhase(phase, note.frequency)
             }
         }
+    }
 
-        if (writeIndex < finalPcm.size) {
-            return finalizePcm(finalPcm.copyOf(writeIndex))
+    /**
+     * One period of the band-limited [waveform] at [frequency]. A note reads its samples
+     * from here instead of summing up to [MAX_HARMONICS] sines for every sample, which made
+     * a minute of music take seconds on a slow phone. Noise has no period: null.
+     */
+    private fun wavetable(
+        waveform: WaveformType,
+        frequency: Float,
+    ): FloatArray? {
+        if (waveform == WaveformType.NOISE) return null
+        return FloatArray(WAVETABLE_SIZE) { i ->
+            oscillatorSample(waveform, 2.0 * PI * i / WAVETABLE_SIZE, frequency)
         }
-        return finalizePcm(finalPcm)
+    }
+
+    private fun tableSample(
+        table: FloatArray,
+        phase: Double,
+    ): Float {
+        val position = phase / (2.0 * PI) * WAVETABLE_SIZE
+        val index = position.toInt() % WAVETABLE_SIZE
+        val next = (index + 1) % WAVETABLE_SIZE
+        val fraction = (position - position.toInt()).toFloat()
+        return table[index] + (table[next] - table[index]) * fraction
     }
 
     private fun envelopeAmplitude(

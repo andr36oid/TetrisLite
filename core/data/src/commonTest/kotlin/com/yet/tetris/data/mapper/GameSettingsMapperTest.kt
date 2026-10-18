@@ -1,5 +1,7 @@
 package com.yet.tetris.data.mapper
 
+import com.yet.tetris.data.model.GameSettingsDto
+import com.yet.tetris.data.model.MusicThemeDto
 import com.yet.tetris.domain.model.audio.AudioSettings
 import com.yet.tetris.domain.model.audio.MusicTheme
 import com.yet.tetris.domain.model.game.Difficulty
@@ -63,6 +65,13 @@ class GameSettingsMapperTest {
             val result = dto.toDomain()
             assertEquals(style, result, "Failed for $style")
         }
+    }
+
+    @Test
+    fun musicTheme_defaultsToKorobeiniki() {
+        assertEquals(MusicTheme.KOROBEINIKI, GameSettings().audioSettings.selectedMusicTheme)
+        assertEquals(MusicTheme.KOROBEINIKI, GameSettingsDto().audioSettings.selectedMusicTheme.toDomain())
+        assertEquals(MusicTheme.CLASSIC, MusicThemeDto.CLASSIC.toDomain())
     }
 
     @Test

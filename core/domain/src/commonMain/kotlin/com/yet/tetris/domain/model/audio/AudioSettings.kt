@@ -8,13 +8,14 @@ data class AudioSettings(
     val soundEffectsEnabled: Boolean = true,
     val musicVolume: Float = 0.1f, // 0.0 to 1.0
     val sfxVolume: Float = 0.2f, // 0.0 to 1.0
-    val selectedMusicTheme: MusicTheme = MusicTheme.CLASSIC,
+    val selectedMusicTheme: MusicTheme = MusicTheme.KOROBEINIKI,
 )
 
 /**
  * Available procedurally generated music themes.
  */
 enum class MusicTheme {
+    KOROBEINIKI, // The folk song in andr36oid's arrangement, the default; first in the list
     CLASSIC, // Chiptune-inspired lead with modern float PCM playback
     MODERN, // More contemporary electronic sound
     MINIMAL, // Ambient, minimal background music

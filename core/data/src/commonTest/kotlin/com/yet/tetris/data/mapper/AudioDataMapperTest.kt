@@ -24,6 +24,7 @@ class AudioDataMapperTest {
 
     @Test
     fun getWaveformForTheme_returnsExpectedWaveforms() {
+        assertEquals(WaveformType.SQUARE, getWaveformForTheme(MusicTheme.KOROBEINIKI))
         assertEquals(WaveformType.SQUARE, getWaveformForTheme(MusicTheme.CLASSIC))
         assertEquals(WaveformType.SAWTOOTH, getWaveformForTheme(MusicTheme.MODERN))
         assertEquals(WaveformType.TRIANGLE, getWaveformForTheme(MusicTheme.MINIMAL))

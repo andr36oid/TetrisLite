@@ -175,6 +175,8 @@ val AudioSettingsSection =
 
 private fun formatMusicTheme(theme: MusicTheme): String =
     when (theme) {
+        // the same in every language
+        MusicTheme.KOROBEINIKI -> "andr36oid Коробейники"
         MusicTheme.CLASSIC -> "Classic"
         MusicTheme.MODERN -> "Modern"
         MusicTheme.MINIMAL -> "Minimal"

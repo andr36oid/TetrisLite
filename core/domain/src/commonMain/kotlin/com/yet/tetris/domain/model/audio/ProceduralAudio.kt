@@ -11,6 +11,11 @@ data class Note(
 ) {
     companion object {
         // Musical note frequencies (A4 = 440Hz standard)
+        const val E2 = 82.41f
+        const val A2 = 110.00f
+        const val B2 = 123.47f
+        const val D3 = 146.83f
+        const val E3 = 164.81f
         const val C4 = 261.63f
         const val D4 = 293.66f
         const val E4 = 329.63f
@@ -74,12 +79,28 @@ data class SoundEffectParams(
 )
 
 /**
+ * One part of a longer piece: a melody, an optional bass voice under it and the tempo for
+ * both. The bass is cut to the melody's length.
+ */
+data class MusicSection(
+    val melody: List<Note>,
+    val bass: List<Note> = emptyList(),
+    val tempo: Int = 120, // BPM
+)
+
+/**
  * Music sequence definition for procedural generation.
+ *
+ * A sequence with [sections] plays them one after another, each at its own tempo and with
+ * its bass voice; [notes] and [tempo] then aren't used for the sound.
  */
 data class MusicSequence(
     val notes: List<Note>,
     val tempo: Int = 120, // BPM
     val loop: Boolean = true,
+    val sections: List<MusicSection> = emptyList(),
+    val bassWaveform: WaveformType = WaveformType.TRIANGLE,
+    val bassVolume: Float = 0.45f,
 )
 
 /**
@@ -160,6 +181,92 @@ object SoundEffectPresets {
  * Predefined music sequences inspired by classic Tetris (but original compositions).
  */
 object MusicSequencePresets {
+    // Lengths in beats (a quarter note is one beat), for writing the Korobeiniki theme by bars.
+    private fun n(
+        frequency: Float,
+        beats: Float,
+    ) = Note(frequency, beats * Note.QUARTER)
+
+    /** One bar of oom-pah bass: root and fifth on the four beats. */
+    private fun oomPah(
+        root: Float,
+        fifth: Float,
+    ) = listOf(n(root, 1f), n(fifth, 1f), n(root, 1f), n(fifth, 1f))
+
+    // Korobeiniki, the Russian folk song (melody 19th century, public domain): the first
+    // half of the verse ...
+    private val VERSE_A =
+        listOf(
+            n(Note.E5, 1f), n(Note.B4, 0.5f), n(Note.C5, 0.5f), n(Note.D5, 1f), n(Note.C5, 0.5f), n(Note.B4, 0.5f),
+            n(Note.A4, 1f), n(Note.A4, 0.5f), n(Note.C5, 0.5f), n(Note.E5, 1f), n(Note.D5, 0.5f), n(Note.C5, 0.5f),
+            n(Note.B4, 1.5f), n(Note.C5, 0.5f), n(Note.D5, 1f), n(Note.E5, 1f),
+            n(Note.C5, 1f), n(Note.A4, 1f), n(Note.A4, 2f),
+        )
+
+    // ... and the second half.
+    private val VERSE_B =
+        listOf(
+            n(Note.D5, 1.5f), n(Note.F5, 0.5f), n(Note.A5, 1f), n(Note.G5, 0.5f), n(Note.F5, 0.5f),
+            n(Note.E5, 1.5f), n(Note.C5, 0.5f), n(Note.E5, 1f), n(Note.D5, 0.5f), n(Note.C5, 0.5f),
+            n(Note.B4, 1f), n(Note.B4, 0.5f), n(Note.C5, 0.5f), n(Note.D5, 1f), n(Note.E5, 1f),
+            n(Note.C5, 1f), n(Note.A4, 1f), n(Note.A4, 2f),
+        )
+
+    // The verse again in running eighths, the way dance players vary a tune (written for
+    // andr36oid's fork).
+    private val VARIATION_A =
+        listOf(
+            n(Note.E5, 0.5f), n(Note.E5, 0.5f), n(Note.B4, 0.5f), n(Note.C5, 0.5f),
+            n(Note.D5, 0.5f), n(Note.E5, 0.25f), n(Note.D5, 0.25f), n(Note.C5, 0.5f), n(Note.B4, 0.5f),
+            n(Note.A4, 0.5f), n(Note.A4, 0.5f), n(Note.A4, 0.5f), n(Note.C5, 0.5f),
+            n(Note.E5, 0.5f), n(Note.E5, 0.5f), n(Note.D5, 0.5f), n(Note.C5, 0.5f),
+            n(Note.B4, 0.5f), n(Note.B4, 0.5f), n(Note.B4, 0.5f), n(Note.C5, 0.5f),
+            n(Note.D5, 0.5f), n(Note.D5, 0.5f), n(Note.E5, 0.5f), n(Note.E5, 0.5f),
+            n(Note.C5, 0.5f), n(Note.E5, 0.5f), n(Note.C5, 0.5f), n(Note.B4, 0.5f), n(Note.A4, 2f),
+        )
+
+    private val VARIATION_B =
+        listOf(
+            n(Note.D5, 0.5f), n(Note.D5, 0.5f), n(Note.D5, 0.5f), n(Note.F5, 0.5f),
+            n(Note.A5, 0.5f), n(Note.A5, 0.5f), n(Note.G5, 0.5f), n(Note.F5, 0.5f),
+            n(Note.E5, 0.5f), n(Note.E5, 0.5f), n(Note.E5, 0.5f), n(Note.C5, 0.5f),
+            n(Note.E5, 0.5f), n(Note.F5, 0.25f), n(Note.E5, 0.25f), n(Note.D5, 0.5f), n(Note.C5, 0.5f),
+            n(Note.B4, 0.5f), n(Note.B4, 0.5f), n(Note.B4, 0.5f), n(Note.C5, 0.5f),
+            n(Note.D5, 0.5f), n(Note.D5, 0.5f), n(Note.E5, 0.5f), n(Note.E5, 0.5f),
+            n(Note.C5, 0.5f), n(Note.E5, 0.5f), n(Note.C5, 0.5f), n(Note.B4, 0.5f), n(Note.A4, 2f),
+        )
+
+    // A plain folk accompaniment (written for andr36oid's fork): A minor and E for the first
+    // half, D minor, A minor and E for the second.
+    private val BASS_A =
+        oomPah(Note.A2, Note.E3) + oomPah(Note.A2, Note.E3) + oomPah(Note.E2, Note.B2) + oomPah(Note.A2, Note.E3)
+    private val BASS_B =
+        oomPah(Note.D3, Note.A2) + oomPah(Note.A2, Note.E3) + oomPah(Note.E2, Note.B2) + oomPah(Note.A2, Note.E3)
+
+    private val KOROBEINIKI_SECTIONS =
+        listOf(
+            // the whole verse, both halves twice, at a walking pace
+            MusicSection(VERSE_A + VERSE_A + VERSE_B + VERSE_B, BASS_A + BASS_A + BASS_B + BASS_B, tempo = 120),
+            // the variation, quicker
+            MusicSection(VARIATION_A + VARIATION_B, BASS_A + BASS_B, tempo = 144),
+            // and the verse once more at dance speed, before it starts over slowly
+            MusicSection(VERSE_A + VERSE_A + VERSE_B + VERSE_B, BASS_A + BASS_A + BASS_B + BASS_B, tempo = 168),
+        )
+
+    /**
+     * Korobeiniki, the Russian folk song: the melody is from the 19th century and in the
+     * public domain. The arrangement (a variation, the bass and the faster rounds) was made
+     * for andr36oid: the verse, the variation and the verse again, faster each round, with an
+     * oom-pah bass. About 68 seconds before it loops.
+     */
+    val KOROBEINIKI_THEME =
+        MusicSequence(
+            notes = KOROBEINIKI_SECTIONS.flatMap { it.melody },
+            tempo = 120,
+            loop = true,
+            sections = KOROBEINIKI_SECTIONS,
+        )
+
     /**
      * Classic chiptune-inspired melody.
      * Original composition inspired by Russian folk music style.

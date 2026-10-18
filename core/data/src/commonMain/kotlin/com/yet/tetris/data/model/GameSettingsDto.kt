@@ -44,11 +44,12 @@ data class AudioSettingsDto(
     val soundEffectsEnabled: Boolean = true,
     val musicVolume: Float = 0.1f,
     val sfxVolume: Float = 0.2f,
-    val selectedMusicTheme: MusicThemeDto = MusicThemeDto.CLASSIC,
+    val selectedMusicTheme: MusicThemeDto = MusicThemeDto.KOROBEINIKI,
 )
 
 @Serializable
 enum class MusicThemeDto {
+    KOROBEINIKI,
     CLASSIC,
     MODERN,
     MINIMAL,

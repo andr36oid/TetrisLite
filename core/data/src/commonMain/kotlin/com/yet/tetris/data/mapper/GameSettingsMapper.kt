@@ -67,6 +67,7 @@ fun AudioSettings.toDto(): AudioSettingsDto =
 
 fun MusicTheme.toDto(): MusicThemeDto =
     when (this) {
+        MusicTheme.KOROBEINIKI -> MusicThemeDto.KOROBEINIKI
         MusicTheme.CLASSIC -> MusicThemeDto.CLASSIC
         MusicTheme.MODERN -> MusicThemeDto.MODERN
         MusicTheme.MINIMAL -> MusicThemeDto.MINIMAL
@@ -145,6 +146,7 @@ fun AudioSettingsDto.toDomain(): AudioSettings =
 
 fun MusicThemeDto.toDomain(): MusicTheme =
     when (this) {
+        MusicThemeDto.KOROBEINIKI -> MusicTheme.KOROBEINIKI
         MusicThemeDto.CLASSIC -> MusicTheme.CLASSIC
         MusicThemeDto.MODERN -> MusicTheme.MODERN
         MusicThemeDto.MINIMAL -> MusicTheme.MINIMAL

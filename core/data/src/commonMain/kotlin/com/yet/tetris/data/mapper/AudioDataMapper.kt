@@ -21,6 +21,7 @@ fun getParamsForEffect(effect: SoundEffect): SoundEffectParams? =
 
 fun getSequenceForTheme(theme: MusicTheme): MusicSequence? =
     when (theme) {
+        MusicTheme.KOROBEINIKI -> MusicSequencePresets.KOROBEINIKI_THEME
         MusicTheme.CLASSIC -> MusicSequencePresets.CLASSIC_THEME
         MusicTheme.MODERN -> MusicSequencePresets.MODERN_THEME
         MusicTheme.MINIMAL -> MusicSequencePresets.MINIMAL_THEME
@@ -32,6 +33,7 @@ fun getSequenceForTheme(theme: MusicTheme): MusicSequence? =
 
 fun getWaveformForTheme(theme: MusicTheme): WaveformType =
     when (theme) {
+        MusicTheme.KOROBEINIKI -> WaveformType.SQUARE
         MusicTheme.CLASSIC -> WaveformType.SQUARE
         MusicTheme.MODERN -> WaveformType.SAWTOOTH
         MusicTheme.MINIMAL -> WaveformType.TRIANGLE
