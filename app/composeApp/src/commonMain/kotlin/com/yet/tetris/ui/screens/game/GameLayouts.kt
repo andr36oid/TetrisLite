@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import com.yet.tetris.uikit.component.hint.HintList
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -246,9 +247,10 @@ internal fun HandheldGameLayout(
         val columns = gameState.board.width.coerceAtLeast(1)
         // the board pane's padding on both sides, and a pixel against rounding
         val chrome = BOARD_PANE_PADDING * 2
+        // the board takes the whole height: no padding above or below it
         val cellPx =
             with(density) {
-                floor(((maxHeight - chrome).toPx() - 1f) / rows).coerceAtLeast(1f)
+                floor((maxHeight.toPx() + 0.5f) / rows).coerceAtLeast(1f)
             }
         val boardWidth = with(density) { (cellPx * columns).toDp() }
         val sideWidth = (maxWidth - boardWidth - chrome) / 2 - metrics.paneSpacing
@@ -283,6 +285,20 @@ internal fun HandheldGameLayout(
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                // what the controller buttons do (see keyboardHandler), beside the board
+                // so it keeps the screen's full height
+                HintList(
+                    hints =
+                        listOf(
+                            "D-pad" to "Move",
+                            "A" to "Rotate",
+                            "Y" to "Rotate back",
+                            "X" to "Drop",
+                            "L1" to "Hold",
+                            "Start" to "Pause",
+                        ),
+                )
+
                 GameActionButtons(
                     onPause = actions.onPause,
                     onHold = actions.onHold,
@@ -302,6 +318,7 @@ internal fun HandheldGameLayout(
                 actions = actions,
                 juiceOverlayState = juiceOverlayState,
                 paneAlignment = Alignment.Center,
+                fullHeight = true,
             )
 
             Column(
@@ -486,6 +503,9 @@ private fun GameBoardPane(
     juiceOverlayState: JuiceOverlayState,
     fitHeightFirst: Boolean = false,
     paneAlignment: Alignment = Alignment.Center,
+    // the board from the screen's top to its bottom: no padding above or below it,
+    // square corners
+    fullHeight: Boolean = false,
 ) {
     val boardAspectRatio =
         remember(gameState.board.width, gameState.board.height) {
@@ -502,8 +522,8 @@ private fun GameBoardPane(
     BoxWithConstraints(
         modifier =
             panelModifier
-                .glassPanel(shape = RoundedCornerShape(20.dp))
-                .padding(BOARD_PANE_PADDING),
+                .glassPanel(shape = RoundedCornerShape(if (fullHeight) 0.dp else 20.dp))
+                .padding(horizontal = BOARD_PANE_PADDING, vertical = if (fullHeight) 0.dp else BOARD_PANE_PADDING),
         contentAlignment = paneAlignment,
     ) {
         val widthBoundByHeight = maxHeight * boardAspectRatio

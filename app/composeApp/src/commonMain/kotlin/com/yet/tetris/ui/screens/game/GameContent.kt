@@ -81,7 +81,8 @@ internal fun GamePlayingContent(
 
         if (isHandheldLandscape(maxWidth, maxHeight)) {
             HandheldGameLayout(
-                modifier = contentModifier,
+                // nothing above or below: the board goes from the top to the bottom
+                modifier = Modifier.fillMaxSize().padding(horizontal = metrics.horizontalPadding),
                 gameState = gameState,
                 model = model,
                 actions = actions,

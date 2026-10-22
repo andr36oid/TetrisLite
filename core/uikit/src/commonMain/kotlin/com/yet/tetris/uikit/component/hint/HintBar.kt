@@ -3,6 +3,7 @@ package com.yet.tetris.uikit.component.hint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -75,6 +76,32 @@ fun HintBar(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * The same hints one under the other, for a side column: the game's board keeps all of
+ * the screen's height.
+ */
+@Composable
+fun HintList(
+    modifier: Modifier = Modifier,
+    hints: List<Pair<String, String>>,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        hints.forEach { (key, label) ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                KeyBadge(key)
+                Text(
+                    text = label,
+                    modifier = Modifier.padding(start = 4.dp),
+                    color = Grey,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                )
             }
         }
     }
