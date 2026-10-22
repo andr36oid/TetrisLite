@@ -33,7 +33,7 @@ fun getSequenceForTheme(theme: MusicTheme): MusicSequence? =
 
 fun getWaveformForTheme(theme: MusicTheme): WaveformType =
     when (theme) {
-        MusicTheme.KOROBEINIKI -> WaveformType.SQUARE
+        MusicTheme.KOROBEINIKI -> WaveformType.TRIANGLE
         MusicTheme.CLASSIC -> WaveformType.SQUARE
         MusicTheme.MODERN -> WaveformType.SAWTOOTH
         MusicTheme.MINIMAL -> WaveformType.TRIANGLE
