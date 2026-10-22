@@ -2,11 +2,17 @@ package com.yet.tetris.ui.screens.game.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.yet.tetris.feature.game.GameComponent
 import org.jetbrains.compose.resources.stringResource
@@ -19,26 +25,30 @@ import tetrislite.composeapp.generated.resources.resume
 
 @Composable
 fun PauseDialog(component: GameComponent) {
-    AlertDialog(
-        onDismissRequest = component::onResume,
-        title = { Text(stringResource(Res.string.game_paused)) },
-        text = { Text(stringResource(Res.string.pause_message)) },
-        confirmButton = {
-            TextButton(onClick = component::onResume, modifier = Modifier.initialFocus()) {
+    GameDialogPage(
+        leading = "Paused",
+        hints = listOf("D-pad" to "Move", "A" to "Select", "B" to "Resume"),
+        onBack = component::onResume,
+    ) {
+        Text(
+            text = stringResource(Res.string.game_paused),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(text = stringResource(Res.string.pause_message), textAlign = TextAlign.Center)
+        Spacer(Modifier.height(24.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Button(onClick = component::onResume, modifier = Modifier.initialFocus()) {
                 Text(stringResource(Res.string.resume))
             }
-        },
-        dismissButton = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                TextButton(onClick = component::onQuit, modifier = Modifier.dialogFocusRing()) {
-                    Text(stringResource(Res.string.quit))
-                }
-                TextButton(onClick = component::onSettings, modifier = Modifier.dialogFocusRing()) {
-                    Text(stringResource(Res.string.game_settings))
-                }
+            OutlinedButton(onClick = component::onQuit, modifier = Modifier.dialogFocusRing()) {
+                Text(stringResource(Res.string.quit))
             }
-        },
-    )
+            OutlinedButton(onClick = component::onSettings, modifier = Modifier.dialogFocusRing()) {
+                Text(stringResource(Res.string.game_settings))
+            }
+        }
+    }
 }

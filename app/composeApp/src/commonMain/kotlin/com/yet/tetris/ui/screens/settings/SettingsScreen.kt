@@ -67,6 +67,7 @@ import com.yet.tetris.domain.model.theme.VisualTheme
 import com.yet.tetris.feature.settings.PreviewSettingsComponent
 import com.yet.tetris.feature.settings.SettingsComponent
 import com.yet.tetris.uikit.component.chip.TetrisFilterChip
+import com.yet.tetris.uikit.component.hint.HintBar
 import com.yet.tetris.uikit.component.modifier.focusRing
 import com.yet.tetris.uikit.theme.TetrisLiteAppTheme
 import org.jetbrains.compose.resources.stringResource
@@ -356,11 +357,21 @@ fun SettingsPage(component: SettingsComponent) {
                     sectionList(Modifier.fillMaxWidth(), true)
                     controlPane(Modifier.fillMaxWidth().weight(1f))
                 } else {
-                    Row(Modifier.fillMaxSize()) {
+                    Row(Modifier.fillMaxWidth().weight(1f)) {
                         sectionList(Modifier.width(sectionPaneWidth).fillMaxHeight(), false)
                         controlPane(Modifier.weight(1f).fillMaxHeight())
                     }
                 }
+
+                HintBar(
+                    leading = "Settings",
+                    hints =
+                        if (inControls) {
+                            listOf("D-pad" to "Move", "A" to "Change", "B" to "Back")
+                        } else {
+                            listOf("D-pad" to "Move", "A" to "Open", "B" to "Close")
+                        },
+                )
             }
         }
     }

@@ -54,6 +54,7 @@ import com.yet.tetris.ui.screens.settings.SettingsDialog
 import com.yet.tetris.uikit.component.button.EnumSegmentedButtonRow
 import com.yet.tetris.uikit.component.button.FrostedGlassButton
 import com.yet.tetris.uikit.component.button.GlassButton
+import com.yet.tetris.uikit.component.hint.HintBar
 import com.yet.tetris.uikit.component.sheet.ModalBottomSheet
 import com.yet.tetris.uikit.theme.TetrisLiteAppTheme
 import org.jetbrains.compose.resources.stringResource
@@ -109,6 +110,9 @@ fun HomeScreen(component: HomeComponent) {
                         containerColor = Color.Transparent,
                     ),
             )
+        },
+        bottomBar = {
+            HintBar(leading = "Home", hints = listOf("A" to "Select"))
         },
     ) { paddingValues ->
         when (val state = model) {
@@ -304,7 +308,7 @@ private fun ProgressionOverviewCard(
 
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.12f)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF111111)),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

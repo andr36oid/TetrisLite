@@ -1,13 +1,15 @@
 package com.yet.tetris.ui.screens.game.dialog
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import tetrislite.composeapp.generated.resources.Res
 import tetrislite.composeapp.generated.resources.error_title
@@ -18,15 +20,22 @@ fun ErrorDialog(
     message: String,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Default.Warning, contentDescription = "Error", tint = MaterialTheme.colorScheme.error) },
-        title = { Text(stringResource(Res.string.error_title)) },
-        text = { Text(message) },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.ok))
-            }
-        },
-    )
+    GameDialogPage(
+        leading = "Error",
+        hints = listOf("A" to "Ok", "B" to "Close"),
+        onBack = onDismiss,
+    ) {
+        Text(
+            text = stringResource(Res.string.error_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(text = message, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(24.dp))
+        Button(onClick = onDismiss, modifier = Modifier.initialFocus()) {
+            Text(stringResource(Res.string.ok))
+        }
+    }
 }

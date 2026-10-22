@@ -2,7 +2,9 @@ package com.yet.tetris.ui.screens.game
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -18,6 +20,7 @@ import com.yet.tetris.ui.screens.game.dialog.ErrorDialog
 import com.yet.tetris.ui.screens.game.dialog.GameOverDialog
 import com.yet.tetris.ui.screens.game.dialog.PauseDialog
 import com.yet.tetris.ui.screens.settings.SettingsDialog
+import com.yet.tetris.uikit.component.hint.HintBar
 
 @Composable
 fun GameScreen(component: GameComponent) {
@@ -80,11 +83,27 @@ fun GameScreen(component: GameComponent) {
                             scaleY = juiceOverlayState.contentScale
                         },
                 ) {
-                    GamePlayingContent(
-                        model = model,
-                        actions = inputActions,
-                        juiceOverlayState = juiceOverlayState,
-                    )
+                    Column(Modifier.fillMaxSize()) {
+                        Box(Modifier.fillMaxWidth().weight(1f)) {
+                            GamePlayingContent(
+                                model = model,
+                                actions = inputActions,
+                                juiceOverlayState = juiceOverlayState,
+                            )
+                        }
+                        // what the controller buttons do in the game (see keyboardHandler)
+                        HintBar(
+                            leading = "Game",
+                            hints =
+                                listOf(
+                                    "D-pad" to "Move",
+                                    "A" to "Rotate",
+                                    "X" to "Drop",
+                                    "L1" to "Hold",
+                                    "Start" to "Pause",
+                                ),
+                        )
+                    }
 
                     GameDialog(component, model)
                     GameSheet(component)
