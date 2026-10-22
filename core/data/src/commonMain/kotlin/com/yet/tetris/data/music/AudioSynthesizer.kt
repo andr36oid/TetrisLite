@@ -87,7 +87,7 @@ object AudioSynthesizer {
      *
      * @param sequence The music sequence to synthesize.
      * @param waveform The waveform to use for all notes in the sequence (e.g., SQUARE for chiptune).
-     * @param noteEnvelope An optional ADSR envelope to apply to each note, creating a "plucking" or "fading" effect.
+     * @param noteEnvelope Fallback ADSR for voices without a sequence-specific envelope.
      * @return A FloatArray containing the raw PCM data for the entire sequence.
      */
     fun synthesizeMusicSequence(
@@ -108,11 +108,28 @@ object AudioSynthesizer {
         sections.forEachIndexed { index, section ->
             val tempoFactor = 120.0f / section.tempo
             val end = offset + sectionSamples[index]
-            addVoice(finalPcm, offset, end, section.melody, tempoFactor, waveform, noteEnvelope, 1.0f, tables)
+            addVoice(
+                finalPcm,
+                offset,
+                end,
+                section.melody,
+                tempoFactor,
+                waveform,
+                sequence.melodyEnvelope ?: noteEnvelope,
+                1.0f,
+                tables,
+            )
             if (section.bass.isNotEmpty()) {
                 addVoice(
-                    finalPcm, offset, end, section.bass, tempoFactor,
-                    sequence.bassWaveform, noteEnvelope, sequence.bassVolume, tables,
+                    finalPcm,
+                    offset,
+                    end,
+                    section.bass,
+                    tempoFactor,
+                    sequence.bassWaveform,
+                    sequence.bassEnvelope ?: noteEnvelope,
+                    sequence.bassVolume,
+                    tables,
                 )
             }
             offset = end
